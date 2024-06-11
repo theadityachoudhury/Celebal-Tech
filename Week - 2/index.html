@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Management Tool</title>
+    <style>
+        #file-list {
+            margin-top: 20px;
+        }
+        #file-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #file-list li {
+            margin: 5px 0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Management Tool</h1>
+    <form id="file-form">
+        <label for="filename">File Name:</label>
+        <input type="text" id="filename" name="filename" required><br><br>
+        <label for="content">Content:</label><br>
+        <textarea id="content" name="content" rows="10" cols="30" required></textarea><br><br>
+        <button type="submit">Create File</button>
+    </form>
+    <br>
+    <form id="delete-form">
+        <label for="delete-filename">File Name to Delete:</label>
+        <input type="text" id="delete-filename" name="filename" required><br><br>
+        <button type="submit">Delete File</button>
+    </form>
+    <div id="file-list">
+        <h2>Files in Directory:</h2>
+        <ul id="files">
+            <!-- The list of files will be inserted here -->
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fileForm = document.getElementById('file-form');
+            const deleteForm = document.getElementById('delete-form');
+            const fileList = document.getElementById('files');
+
+            const fetchFiles = () => {
+                fetch('/files')
+                    .then(response => response.json())
+                    .then(files => {
+                        fileList.innerHTML = '';
+                        files.forEach(file => {
+                            const li = document.createElement('li');
+                            li.textContent = file;
+                            li.addEventListener('click', () => {
+                                window.open(`/file?name=${file}`, '_blank');
+                            });
+                            fileList.appendChild(li);
+                        });
+                    });
+            };
+
+            fileForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const formData = new FormData(fileForm);
+                fetch('/file', {
+                    method: 'POST',
+                    body: new URLSearchParams(formData)
+                }).then(response => {
+                    if (response.ok) {
+                        alert('File created');
+                        fileForm.reset();
+                        fetchFiles();
+                    } else {
+                        alert('Error creating file');
+                    }
+                });
+            });
+
+            deleteForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const formData = new FormData(deleteForm);
+                fetch('/delete', {
+                    method: 'POST',
+                    body: new URLSearchParams(formData)
+                }).then(response => {
+                    if (response.ok) {
+                        alert('File deleted');
+                        deleteForm.reset();
+                        fetchFiles();
+                    } else {
+                        alert('Error deleting file');
+                    }
+                });
+            });
+
+            fetchFiles();
+        });
+    </script>
+</body>
+</html>
